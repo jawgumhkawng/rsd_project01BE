@@ -26,7 +26,7 @@ async function main() {
     console.log("post seeding started..");
 
     for (let i = 0; i < 20; i++) {
-        const prisma.post.create({
+        await prisma.post.create({
             data: {
                 content: faker.lorem.paragraph(),
                 userId: faker.number.int({ min: 1, max: 5 }),
