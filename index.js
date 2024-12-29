@@ -13,6 +13,11 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const { usersRouter } = require("./routers/users");
+app.use(usersRouter);
+
+const {auth, isOwner} = require("./middlewares/auth");
+
 app.get('/posts', async (req, res) => {
     const posts = await prisma.post.findMany({
         take: 20,
@@ -43,7 +48,7 @@ app.post("/posts", async (req, res) => {
     const post = await prisma.post.create({
         data: {
             content,
-            userId: 1,
+            userId: 2,
         },
         include: { user: true }
     })
@@ -51,7 +56,7 @@ app.post("/posts", async (req, res) => {
     res.status(201).json(post);
 })
 
-app.delete("/posts/:id", async (req, res) => {
+app.delete("/posts/:id",auth,isOwner("post"), async (req, res) => {
     const { id } = req.params;
 
     const post = await prisma.post.delete({
@@ -67,5 +72,5 @@ app.delete("/posts/:id", async (req, res) => {
 
 app.listen(8000, () => {
     // npx nodemon index.js
-    console.log("Express API running at 8080");
+    console.log("Express API running at 8000");
 });
