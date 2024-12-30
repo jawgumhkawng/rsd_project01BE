@@ -25,12 +25,13 @@ app.get('/posts', async (req, res) => {
         include: { user: true },
     }) 
 
-    res.json(posts);
+      res.json(posts);
 });
 
 app.get('/posts/:id', async (req, res) => {
     const { id } = req.params;
     const post = await prisma.post.findUnique({
+        include: { user: true },
         where: {
             id: Number(id)
         }
@@ -39,8 +40,11 @@ app.get('/posts/:id', async (req, res) => {
     res.json(post);
 });
 
-app.post("/posts", async (req, res) => {
+app.post("/posts", auth, async (req, res) => {
     const { content } = req.body;
+
+    const user = res.locals.user;
+
     if(!content) {
         return res.status(400).json({ msg: "content is required" })
     }
@@ -48,7 +52,7 @@ app.post("/posts", async (req, res) => {
     const post = await prisma.post.create({
         data: {
             content,
-            userId: 2,
+            userId: Number(user.id),
         },
         include: { user: true }
     })
