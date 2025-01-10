@@ -17,6 +17,40 @@ router.get("/verify", auth, async (req, res) => {
     res.json(user);
 });
 
+router.get("/users/:id", async (req, res) => {
+    const userId = parseInt(req.params.id);
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                posts: {
+                    orderBy: { id: "desc" },
+                    include: {
+                        user: true,
+                        likes: true,
+                        comments: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const { password, ...userWithoutPassword } = user;
+        res.json(userWithoutPassword);
+        
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+ });
+
 router.post("/users", async (req, res) => {
 	const { name, username, bio, password } = req.body;
 	if (!name || !username || !password) {

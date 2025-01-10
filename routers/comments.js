@@ -4,15 +4,18 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { auth, isOwner } = require("../middlewares/auth");
 // Create a new comment
-router.post('/comments', auth, async (req, res) => {
-    const { content, postId } = req.body;
+router.post('/posts/:id/comments', auth, async (req, res) => {
+    const postId = req.params.id;
+    const userId = res.locals.user.id;
+    const { content } = req.body;
+    
     
     try {
         const comment = await prisma.comment.create({
             data: {
                 content,
                 postId: parseInt(postId),
-                userId: req.user.id
+                userId: userId,
             },
             include: {
                 user: true
@@ -36,7 +39,7 @@ router.delete('/comments/:id', auth, async (req, res) => {
         if (!comment) {
             return res.status(404).json({ error: "Comment not found" });
         }
-        if (comment.userId !== req.user.id) {
+        if (comment.userId !== res.locals.user.id) {
             return res.status(403).json({ error: "Not authorized" });
         }
         // Delete the comment
